@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redolf-deploy
+  namespace: databases
+  labels:
+    app: myapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: myapp
+  template:
+    metadata:
+      labels:
+        app: myapp
+    spec:
+      containers:
+      - name: myapp-pod
+        image: cassandra
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+
+
+
+        
