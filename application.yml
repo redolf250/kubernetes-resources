@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: springboot-crud-deployment
+spec:
+  selector:
+    matchLabels:
+      app: springboot-k8s-mysql
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: springboot-k8s-mysql
+    spec:
+      containers:
+        - name: springboot-crud-k8s
+          image: spring-boot-k8s:latest
+          imagePullPolicy: Never
+          env:
+            - name: MYSQL_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secrets
+                  key: username
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secrets
+                  key: password
+            - name: DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: mysql-config
+                  key: database
+            - name: DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: mysql-config
+                  key: host
+          resources:
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          ports:
+            - containerPort: 8081
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: springboot-crud-svc
+spec:
+  selector:
+    app: springboot-k8s-mysql
+  ports:
+  - port: 8081
+    targetPort: 8080
+  type: NodePort
