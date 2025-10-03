@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Config
+preferences: {}
+users:
+- name: docker-desktop
+  user:
+    client-certificate-data: DATA+OMITTED
+    client-key-data: DATA+OMITTED
+- name: minikube
+  user:
+    client-certificate: C:\Users\BTC OMEN\.minikube\profiles\minikube\client.crt
+    client-key: C:\Users\BTC OMEN\.minikube\profiles\minikube\client.key
