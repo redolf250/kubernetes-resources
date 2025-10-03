@@ -1,0 +1,224 @@
+
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: spring-boot-kubernetes-headless
+# spec:
+#   clusterIP: None
+#   selector:
+#     app: spring-boot-kubernetes
+#   ports:
+#   - name: application-port
+#     protocol: TCP
+#     port: 80
+#     targetPort: 5000
+#     # If you set the `spec.type` field to `NodePort` and you want a specific port number,
+#     # you can specify a value in the `spec.ports[*].nodePort` field.
+  
+# ---
+# apiVersion: apps/v1
+# kind: StatefulSet
+# metadata:
+#   name: spring-boot-kubernetes
+# spec:
+#   selector:
+#     matchLabels:
+#       app: spring-boot-kubernetes # has to match .spec.template.metadata.labels
+#   serviceName: "spring-boot-kubernetes-headless"
+#   replicas: 3 # by default is 1
+#   template:
+#     metadata:
+#       labels:
+#         app: spring-boot-kubernetes # has to match .spec.selector.matchLabels
+#     spec:
+#       terminationGracePeriodSeconds: 10
+#       containers:
+#       - name:  spring-boot-kubernetes
+#         image: docker.io/library/spring-boot-kubernetes:latest
+#         imagePullPolicy: IfNotPresent
+#         ports:
+#           - containerPort: 5000
+#         resources:
+#           requests:
+#             cpu: 500m
+#             memory: 1000Mi
+#           limits:
+#             cpu: 800m
+#             memory: 2000Mi
+#       restartPolicy: Always
+# ---
+# # https://kubernetes.io/docs/concepts/services-networking/service/
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: spring-boot-kubernetes-svc
+# spec:
+#   selector:
+#     app: spring-boot-kubernetes
+#   type: NodePort
+#   ports:
+#   - name: service-port
+#     protocol: TCP
+#     port: 80
+#     targetPort: 5000
+#     nodePort: 30001
+
+# apiVersion: apps/v1
+# kind: ReplicaSet
+# metadata:
+#   name: MYAPP
+#   labels:
+#     app: MYAPP
+# spec:
+#   # modify replicas according to your case
+#   replicas: 3
+#   selector:
+#     matchLabels:
+#       app: MYAPP
+#       tier: backend
+#   template:
+#     metadata:
+#       labels:
+#         app: MYAPP
+#     spec:
+#       containers:
+#       - name: MYAPP
+#         image: nginx/nginx
+#         ports:
+#         - name: web
+#           containerPort:  80
+#           protocol: TCP
+#         env:
+#         - name: NGX_VERSION
+#           value: 1.16.1
+#         volumeMounts:
+#         - name: localtime
+#           mountPath: /etc/localtime
+#       volumes:
+#         - name: localtime
+#           hostPath:
+#             path: /usr/share/zoneinfo/Asia/Shanghai
+
+# ---
+# apiVersion: v1
+# kind: ReplicationController
+# metadata:
+#   name: myapp
+# spec:
+#   replicas: <Replicas>
+#   selector:
+#     app: myapp
+#   template:
+#     metadata:
+#       name: myapp
+#       labels:
+#         app: myapp
+#     spec:
+#       containers:
+#         - name: myapp
+#           image: <Image>
+#           ports:
+#             - containerPort: <Port>
+
+# https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/
+
+# https://kubernetes.io/docs/concepts/workloads/controllers/job/
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: myjob
+  namespace: default
+  labels:
+    app: myjob
+spec:
+  template:
+    metadata:
+      name: myjob
+      labels:
+        app: myjob
+    spec:
+      containers:
+      - name: myjob
+        image: python:3.7.6-alpine3.10
+        command: ['sh', '-c', 'python3 manage.py makemigrations && python3 manage.py migrate']
+        env:
+        - name: ENV_NAME
+          value: ENV_VALUE
+        volumeMounts:
+        - name: localtime
+          mountPath: /etc/localtime
+      volumes:
+      - name: localtime
+        hostPath:
+          path: /usr/share/zoneinfo/Asia/Tehran
+      restartPolicy: OnFailure
+      dnsPolicy: ClusterFirst
+
+
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: cronjobname
+  namespace: default
+spec:
+  schedule: "*/1 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: jobname
+            image: busybox
+            args: ['/bin/sh', '-c', 'date; echo Hello from the Kubernetes cluster']
+          restartPolicy: OnFailure
+---
+# https://kubernetes.io/docs/concepts/workloads/controllers/job/
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: myjob
+  namespace: default 
+spec:
+  backoffLimit: 3
+  completions: 4
+  parallelism: 2
+  activeDeadlineSeconds: 30
+  template:
+    metadata:
+      name: myjob
+      labels:
+        app: myjob
+    spec:
+      containers:
+      - name: alpine-image
+        imagePullPolicy: IfNotPresent
+        image: docker.io/library/alpine:<none>
+        command: ['sh', '-c', 'echo my first job && sleep 10s && exit 1']
+      restartPolicy: Never
+---
+
+# https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: my-cronjob
+  namespace: default
+spec:
+  schedule: "*/1 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: my-cronjob
+            imagePullPolicy: IfNotPresent
+            image: openjdk:17
+            args: ['/bin/sh', '-c', 'date; echo Hello from the Kubernetes cluster']
+          restartPolicy: Never
+---
+
+
+
+
+
