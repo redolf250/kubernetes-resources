@@ -1,4 +1,4 @@
-## ☸️ kubernetes prometheus Setup
+## ☸️ kubernetes
 
 Complete prometheus monitoring stack setup on Kubernetes.
 
@@ -19,5 +19,16 @@ Alert manager Manifests: https://github.com/bibinwilson/kubernetes-alert-manager
 Grafana manifests: https://github.com/bibinwilson/kubernetes-grafana
 
 Node Exporter manifests: https://github.com/bibinwilson/kubernetes-node-exporter
+
+```
+kubectl --namespace monitoring port-forward $POD_NAME 9091
+kubectl port-forward -n monitoring svc/prometheus-server 9090:80
+microk8s kubectl rollout restart deployment kiali -n istio-system
+microk8s kubectl delete deployment,svc,sa,role,rolebinding,configmap -l app=kiali -n istio-system
+
+
+microk8s helm3 upgrade kiali-server kiali/kiali-server -n istio-system \
+  --set external_services.prometheus.url=http://prometheus-server.istio-system.svc.cluster.local
+```
 
 
